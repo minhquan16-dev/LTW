@@ -1,54 +1,38 @@
-import React from "react";
-import { Typography, Button, Box, Paper } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Typography, Box, Paper, Button } from "@mui/material";
 import { useParams, Link } from "react-router-dom";
-import "./styles.css";
-import models from "../../modelData/models";
+import fetchModel from "../../lib/fetchModelData";
 
 function UserDetail() {
-    // 1. Sửa userID thành userId (khớp với App.js)
-    const { userId } = useParams(); 
-    console.log("ID người dùng đang xem là:", userId);
-    const user = models.userModel(userId);
-    console.log("Dữ liệu người dùng tìm được:", user);
-    if (!user) {
-      return <Typography variant="h5">Không tìm thấy người dùng.</Typography>;
+  const { userId } = useParams();
+  // KHAI BÁO BIẾN user Ở ĐÂY
+  const [user, setUser] = useState(null); 
+
+  useEffect(() => {
+    if (userId) {
+      fetchModel(`/user/${userId}`).then((response) => {
+        setUser(response.data); // Lưu dữ liệu vào biến user
+      }).catch(err => console.error(err));
     }
+  }, [userId]);
 
-    return (
-        <Box sx={{ p: 3 }}>
-          <Paper elevation={3} sx={{ p: 4 }}>
-            <Typography variant="h3" gutterBottom>
-              {user.first_name} {user.last_name}
-            </Typography>
-            
-            <Typography variant="h6" color="textSecondary" sx={{ mt: 2 }}>
-              <strong>Vị trí:</strong> {user.location}
-            </Typography>
-            
-            <Typography variant="h6" color="textSecondary">
-              <strong>Nghề nghiệp:</strong> {user.occupation}
-            </Typography>
+  // Nếu chưa tải xong dữ liệu, hiện thông báo (Tránh lỗi user is not defined)
+  if (!user) return <Typography sx={{ p: 2 }}>Đang tải thông tin...</Typography>;
 
-            {/* 2. Sửa varian thành variant và bdcolor thành bgcolor */}
-            <Typography variant="body1" sx={{ mt: 3, p: 2, bgcolor: "#f9f9f9", borderRadius: 1 }}>
-              <strong>Mô tả:</strong> {user.description}
-            </Typography>
-
-            <Box sx={{ mt: 4 }}>
-              {/* 3. Sửa /photo/ thành /photos/ (số nhiều) */}
-              <Button 
-                variant="contained" 
-                color="primary" 
-                size="large" 
-                component={Link}
-                to={`/photos/${userId}`}
-              >
-                Xem ảnh của {user.first_name.toUpperCase()}
-              </Button>
-            </Box>
-          </Paper>
-        </Box>
-    );
+  return (
+    <Box sx={{ p: 3 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h3">{user.first_name} {user.last_name}</Typography>
+        <Typography variant="h6" sx={{ mt: 2 }}>Vị trí: {user.location}</Typography>
+        <Typography variant="h6">Nghề nghiệp: {user.occupation}</Typography>
+        <Typography variant="body1" sx={{ mt: 2, p: 2, bgcolor: "#f5f5f5" }}>
+          {user.description}
+        </Typography>
+        <Button variant="contained" component={Link} to={`/photos/${user._id}`} sx={{ mt: 3 }}>
+          Xem ảnh của {user.first_name}
+        </Button>
+      </Paper>
+    </Box>
+  );
 }
-
 export default UserDetail;

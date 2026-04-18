@@ -1,42 +1,46 @@
-import React from "react";
-import {
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Typography,
-} from "@mui/material";
-import {Link} from "react-router-dom";
-import "./styles.css";
-import models from "../../modelData/models";
+import React, { useState, useEffect } from "react";
+import { List, ListItem, ListItemText, Divider, Typography, Badge, Box} from "@mui/material";
+import { Link } from "react-router-dom";
+import fetchModel from "../../lib/fetchModelData";
 
-/**
- * Define UserList, a React component of Project 4.
- */
-function UserList () {
-    const users = models.userListModel();
-    return (
-      <div>
-        <Typography variant="body1">
-          Người dùng
-          {/* This is the user list, which takes up 3/12 of the window. You might */}
-          {/* choose to use <a href="https://mui.com/components/lists/">Lists</a>{" "} */}
-          {/* and <a href="https://mui.com/components/dividers/">Dividers</a> to */}
-          {/* display your users like so: */}
-        </Typography>
-        <List component="nav">
-          {users.map((item) => (
-            <React.Fragment key={item._id}>
-              <ListItem Button component={Link} to={`/users/${item._id}`}>
-                
-                      <ListItemText primary={`${item.first_name} ${item.last_name}`}/>
-              </ListItem>
-              <Divider />
-            </React.Fragment>
-          ))}
-        </List>
-      </div>
-    );
+function UserList() {
+  const [users, setUsers] = useState(null);
+
+  useEffect(() => {
+    // Gọi API lấy danh sách người dùng thực từ DB
+    fetchModel("/user/list").then((response) => {
+      setUsers(response.data);
+    }).catch(err => console.error(err));
+  }, []);
+
+  if (!users) return <Typography sx={{ p: 2 }}>Đang tải...</Typography>;
+
+  return (
+    <List component="nav">
+      {users.map((item) => (
+        <React.Fragment key={item._id}>
+          {/* QUAN TRỌNG: Link phải dùng item._id (mã của MongoDB) */}
+          <ListItem Button component={Link} to={`/users/${item._id}`}>
+            <ListItemText primary={`${item.first_name} ${item.last_name}`} />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              {/* Bong bóng Xanh: Số lượng ảnh */}
+              <Badge badgeContent={item.photoCount} color="success" showZero />
+
+              {/* Bong bóng Đỏ: Số lượng bình luận - Click để xem chi tiết */}
+              {/* Lưu ý: Dùng onClick stopPropagation để khi nhấn vào badge không bị nhảy sang trang UserDetail */}
+              <Link 
+                  to={`/comments/${item._id}`} 
+                  onClick={(e) => e.stopPropagation()} 
+                  style={{ textDecoration: 'none' }}
+              >
+                <Badge badgeContent={item.commentCount} color="error" showZero />
+              </Link>
+            </Box>
+          </ListItem>
+          <Divider />
+        </React.Fragment>
+      ))}
+    </List>
+  );
 }
-
 export default UserList;
