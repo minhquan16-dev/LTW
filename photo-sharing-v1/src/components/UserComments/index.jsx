@@ -1,52 +1,49 @@
 import React, { useState, useEffect } from "react";
 import { Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Divider, Box } from "@mui/material";
 import { useParams, Link } from "react-router-dom";
-import fetchModel from "../../lib/fetchModelData";
-
-const BACKEND_URL = "https://c3qzd5-8081.csb.app"; // Thay bằng URL của bạn
+import fetchModel, { baseURL } from "../../lib/fetchModelData";
 
 function UserComments() {
   const { userId } = useParams();
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
-    // Gọi API mới bạn vừa viết ở Backend
-    fetchModel(`/user/commentsOfUser/${userId}`).then(res => {
+    fetchModel(`/user/commentsOfUser/${userId}`).then((res) => {
       setComments(res.data);
     });
   }, [userId]);
 
-  if (comments.length === 0) return <Typography sx={{p:2}}>Người dùng này chưa viết bình luận nào.</Typography>;
+  if (comments.length === 0) return <Typography sx={{ p: 2 }}>This user has not written any comments.</Typography>;
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom color="primary">Bình luận đã viết</Typography>
+      <Typography variant="h5" gutterBottom color="primary">Written Comments</Typography>
       <List>
-        {comments.map((c, index) => (
-          <React.Fragment key={index}>
-            {/* Click vào comment sẽ dẫn đến trang ảnh của người đó */}
-            <ListItemAvatar >
-                {/* Hiển thị ảnh nhỏ (thumbnail) */}
-                <Avatar 
-                   variant="rounded" 
-                   src={`${BACKEND_URL}/images/${c.photo_file_name}`} 
-                   sx={{ width: 60, height: 60, mr: 2 }}
-                   Button component={Link} to={`/photos/${userId}`}
+        {comments.map((c) => {
+          const photoLink = `/photos/${c.photo_owner_id}/${c.photo_index}`;
+          return (
+            <React.Fragment key={c._id}>
+              <ListItem alignItems="flex-start" component={Link} to={photoLink} sx={{ textDecoration: "none", color: "inherit" }}>
+                <ListItemAvatar>
+                  <Avatar
+                    variant="rounded"
+                    src={`${baseURL}/images/${c.photo_file_name}`}
+                    sx={{ width: 60, height: 60, mr: 2 }}
+                  />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={<Typography variant="body1">"{c.comment}"</Typography>}
+                  secondary={
+                    <Typography variant="caption" color="textSecondary">
+                      Written at: {new Date(c.date_time).toLocaleString()}
+                    </Typography>
+                  }
                 />
-              </ListItemAvatar>
-            <ListItem alignItems="flex-start" button component={Link} to={`/photos/${userId}`}>
-              <ListItemText
-                primary={<Typography variant="body1">"{c.comment}"</Typography>}
-                secondary={
-                  <Typography variant="caption" color="textSecondary">
-                    Đã viết vào: {new Date(c.date_time).toLocaleString()}
-                  </Typography>
-                }
-              />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-          </React.Fragment>
-        ))}
+              </ListItem>
+              <Divider variant="inset" component="li" />
+            </React.Fragment>
+          );
+        })}
       </List>
     </Box>
   );
