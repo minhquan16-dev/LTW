@@ -50,7 +50,7 @@ function LoginRegister({ onLogin }) {
     setRegSuccess("");
     postModel("/admin/register", data)
       .then(() => {
-        setRegSuccess("Registration successful. Please log in.");
+        setRegSuccess("Đăng ký thành công! Hãy đăng nhập.");
         reset();
       })
       .catch((err) => setRegError(err.message));
@@ -58,8 +58,9 @@ function LoginRegister({ onLogin }) {
 
   return (
     <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
+      {/* PHẦN ĐĂNG NHẬP */}
       <Paper component="form" sx={{ p: 4, mb: 3 }} onSubmit={handleLoginSubmit(onSubmitLogin)}>
-        <Typography variant="h5" gutterBottom>Login</Typography>
+        <Typography variant="h5" gutterBottom>Đăng Nhập</Typography>
         {loginError && <Alert severity="error" sx={{ mb: 2 }}>{loginError}</Alert>}
         <TextField
           label="Login Name"
@@ -81,10 +82,11 @@ function LoginRegister({ onLogin }) {
         <Button type="submit" variant="contained" fullWidth>Login</Button>
       </Paper>
 
-      <Divider sx={{ mb: 3 }}>OR</Divider>
+      <Divider sx={{ mb: 3 }}>HOẶC</Divider>
 
+      {/* PHẦN ĐĂNG KÝ */}
       <Paper component="form" sx={{ p: 4 }} onSubmit={handleRegisterSubmit(onSubmitRegister)}>
-        <Typography variant="h5" gutterBottom>Register New Account</Typography>
+        <Typography variant="h5" gutterBottom>Đăng Ký Tài Khoản Mới</Typography>
         {regError && <Alert severity="error" sx={{ mb: 2 }}>{regError}</Alert>}
         {regSuccess && <Alert severity="success" sx={{ mb: 2 }}>{regSuccess}</Alert>}
         <TextField
@@ -105,7 +107,7 @@ function LoginRegister({ onLogin }) {
           {...registerField("password", { required: "Password is required" })}
         />
         <TextField
-          label="Confirm Password *"
+          label="Nhập lại Password *"
           type="password"
           fullWidth
           sx={{ mb: 2 }}
