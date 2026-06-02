@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Typography, Card, CardHeader, CardMedia, CardContent, Box, Button, TextField } from "@mui/material";
-import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import fetchModel, { postModel, baseURL } from "../../lib/fetchModelData";
 
 function UserPhotos({ advancedFeatures, onDataChange }) {
   const { userId, photoIndex } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const [photos, setPhotos] = useState(null);
   const [commentTexts, setCommentTexts] = useState({});
   const parsedPhotoIndex = Number.parseInt(photoIndex, 10);
@@ -28,7 +27,7 @@ function UserPhotos({ advancedFeatures, onDataChange }) {
 
   useEffect(() => {
     loadPhotos();
-  }, [loadPhotos, location.search]);
+  }, [loadPhotos]);
 
   const handleAddComment = (photoId) => {
     const text = commentTexts[photoId];
@@ -104,7 +103,7 @@ function UserPhotos({ advancedFeatures, onDataChange }) {
               sx={{ maxHeight: 500, objectFit: "contain", bgcolor: "#f5f5f5" }}
             />
             <CardContent>
-              <Typography variant="h6" gutterBottom>Comments:</Typography>
+              <Typography variant="h6" gutterBottom>Comments: ({p.comments.length})</Typography>
               {renderComments(p)}
               {renderCommentInput(p)}
             </CardContent>
@@ -128,7 +127,7 @@ function UserPhotos({ advancedFeatures, onDataChange }) {
           sx={{ maxHeight: 600, objectFit: "contain", bgcolor: "#000" }}
         />
         <CardContent>
-          <Typography variant="h6" gutterBottom>Comments:</Typography>
+          <Typography variant="h6" gutterBottom>Comments ({p.comments.length}):</Typography>
           {renderComments(p)}
           {renderCommentInput(p)}
         </CardContent>

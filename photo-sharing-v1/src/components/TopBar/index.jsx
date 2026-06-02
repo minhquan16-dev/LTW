@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AppBar, Toolbar, Typography, Checkbox, FormControlLabel, Button, Box } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import fetchModel, { postModel, postFormData } from "../../lib/fetchModelData";
+import fetchModel, { postFormData } from "../../lib/fetchModelData";
 
 function TopBar({ advancedFeatures, setAdvancedFeatures, user, onLogout, onDataChange }) {
   const location = useLocation();
@@ -9,22 +9,16 @@ function TopBar({ advancedFeatures, setAdvancedFeatures, user, onLogout, onDataC
   const [contextText, setContextText] = useState("");
 
   useEffect(() => {
-    if (!user) {
-      setContextText("");
-      return;
-    }
-
+    if (!user) { setContextText(""); return; }
     const parts = location.pathname.split("/");
     if (parts.length > 2 && (parts[1] === "users" || parts[1] === "photos")) {
       const userId = parts[2];
       if (userId.length === 24) {
-        fetchModel(`/user/${userId}`)
-          .then((res) => {
-            const u = res.data;
-            const name = `${u.first_name} ${u.last_name}`;
-            setContextText(parts[1] === "users" ? name : `Photos of ${name}`);
-          })
-          .catch(() => setContextText(""));
+        fetchModel(`/user/${userId}`).then((res) => {
+          const u = res.data;
+          const name = `${u.first_name} ${u.last_name}`;
+          setContextText(parts[1] === "users" ? name : `Photos of ${name}`);
+        }).catch(() => setContextText(""));
       }
     } else {
       setContextText("Photo App");
@@ -32,18 +26,18 @@ function TopBar({ advancedFeatures, setAdvancedFeatures, user, onLogout, onDataC
   }, [location.pathname, user]);
 
   const handleLogout = () => {
-    postModel("/admin/logout", {}).finally(() => onLogout());
+    localStorage.removeItem("token");  // Xóa JWT token
+    onLogout();
   };
 
   const handleUploadPhoto = (e) => {
     const file = e.target.files[0];
     e.target.value = "";
     if (!file) return;
-
     const formData = new FormData();
     formData.append("photo", file);
     postFormData("/photos/new", formData).then(() => {
-      onDataChange();
+      if (onDataChange) onDataChange();
       navigate(`/photos/${user._id}?refresh=${Date.now()}`);
     });
   };

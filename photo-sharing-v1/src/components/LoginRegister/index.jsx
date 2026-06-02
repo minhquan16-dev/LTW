@@ -1,22 +1,19 @@
 import React, { useState } from "react";
 import { Typography, TextField, Button, Box, Paper, Alert, Divider } from "@mui/material";
 import { useForm } from "react-hook-form";
-import { postModel } from "../../lib/fetchModelData";
+import { postPublicModel } from "../../lib/fetchModelData";
 
 function LoginRegister({ onLogin }) {
   const [loginError, setLoginError] = useState("");
   const [regError, setRegError] = useState("");
   const [regSuccess, setRegSuccess] = useState("");
-
+  const [regis, setRegis] = useState(false);
   const {
     register: registerLogin,
     handleSubmit: handleLoginSubmit,
     formState: { errors: loginErrors },
   } = useForm({
-    defaultValues: {
-      login_name: "",
-      password: "",
-    },
+    defaultValues: { login_name: "", password: "" },
   });
 
   const {
@@ -27,28 +24,25 @@ function LoginRegister({ onLogin }) {
     formState: { errors: registerErrors },
   } = useForm({
     defaultValues: {
-      login_name: "",
-      password: "",
-      confirmPassword: "",
-      first_name: "",
-      last_name: "",
-      location: "",
-      description: "",
-      occupation: "",
+      login_name: "", password: "", confirmPassword: "",
+      first_name: "", last_name: "", location: "", description: "", occupation: "",
     },
   });
 
   const onSubmitLogin = (data) => {
     setLoginError("");
-    postModel("/admin/login", data)
-      .then((res) => onLogin(res.data))
+    postPublicModel("/admin/login", data)
+      .then((res) => {
+        localStorage.setItem("token", res.data.token);  // Lưu JWT token
+        onLogin(res.data);
+      })
       .catch((err) => setLoginError(err.message));
   };
 
   const onSubmitRegister = ({ confirmPassword, ...data }) => {
     setRegError("");
     setRegSuccess("");
-    postModel("/admin/register", data)
+    postPublicModel("/user", data)
       .then(() => {
         setRegSuccess("Đăng ký thành công! Hãy đăng nhập.");
         reset();
@@ -58,78 +52,72 @@ function LoginRegister({ onLogin }) {
 
   return (
     <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
-      {/* PHẦN ĐĂNG NHẬP */}
       <Paper component="form" sx={{ p: 4, mb: 3 }} onSubmit={handleLoginSubmit(onSubmitLogin)}>
         <Typography variant="h5" gutterBottom>Đăng Nhập</Typography>
         {loginError && <Alert severity="error" sx={{ mb: 2 }}>{loginError}</Alert>}
         <TextField
-          label="Login Name"
-          fullWidth
-          sx={{ mb: 2 }}
+          label="Login Name" fullWidth sx={{ mb: 2 }}
           error={Boolean(loginErrors.login_name)}
           helperText={loginErrors.login_name?.message}
           {...registerLogin("login_name", { required: "Login name is required" })}
         />
         <TextField
-          label="Password"
-          type="password"
-          fullWidth
-          sx={{ mb: 2 }}
+          label="Password" type="password" fullWidth sx={{ mb: 2 }}
           error={Boolean(loginErrors.password)}
           helperText={loginErrors.password?.message}
-          {...registerLogin("password", { required: "Password is required" })}
+          {...registerLogin("password", { required: "Password is required", 
+            validate: {
+              minLength: (value)=> value.length >=3 || "Password phải có ít nhất 3 kí tự"
+            }
+           })}
         />
         <Button type="submit" variant="contained" fullWidth>Login</Button>
       </Paper>
-
-      <Divider sx={{ mb: 3 }}>HOẶC</Divider>
-
-      {/* PHẦN ĐĂNG KÝ */}
+      
+      <Divider sx={{ mb: 3 }}>
+        <Button variant="contained" onClick={()=> setRegis(!regis)}>Đăng ký tài khoản</Button>
+      </Divider>
+      {!regis ||
       <Paper component="form" sx={{ p: 4 }} onSubmit={handleRegisterSubmit(onSubmitRegister)}>
         <Typography variant="h5" gutterBottom>Đăng Ký Tài Khoản Mới</Typography>
         {regError && <Alert severity="error" sx={{ mb: 2 }}>{regError}</Alert>}
         {regSuccess && <Alert severity="success" sx={{ mb: 2 }}>{regSuccess}</Alert>}
         <TextField
-          label="Login Name *"
-          fullWidth
-          sx={{ mb: 2 }}
+          label="Login Name *" fullWidth sx={{ mb: 2 }}
           error={Boolean(registerErrors.login_name)}
           helperText={registerErrors.login_name?.message}
           {...registerField("login_name", { required: "Login name is required" })}
         />
         <TextField
-          label="Password *"
-          type="password"
-          fullWidth
-          sx={{ mb: 2 }}
+          label="Password *" type="password" fullWidth sx={{ mb: 2 }}
           error={Boolean(registerErrors.password)}
           helperText={registerErrors.password?.message}
-          {...registerField("password", { required: "Password is required" })}
+          {...registerField("password", { required: "Password is required",
+            validate: {
+              minlength: (value) => value.length >= 3 || "Password phải có ít nhất 3 kí tự"
+            }
+           })}
         />
         <TextField
-          label="Nhập lại Password *"
-          type="password"
-          fullWidth
-          sx={{ mb: 2 }}
+          label="Nhập lại Password *" type="password" fullWidth sx={{ mb: 2 }}
           error={Boolean(registerErrors.confirmPassword)}
           helperText={registerErrors.confirmPassword?.message}
           {...registerField("confirmPassword", {
             required: "Confirm password is required",
-            validate: (value) => value === watch("password") || "Passwords do not match",
+            validate: {
+              check: (value) => value === watch("password") || "Passwords do not match",
+              minlength: (value) => value.length >= 3 || "Confirm password phải có ít nhất 3 kí tự"
+            }
           })}
         />
         <TextField
-          label="First Name *"
-          fullWidth
-          sx={{ mb: 2 }}
+          label="First Name *" fullWidth sx={{ mb: 2 }}
           error={Boolean(registerErrors.first_name)}
           helperText={registerErrors.first_name?.message}
           {...registerField("first_name", { required: "First name is required" })}
         />
         <TextField
-          label="Last Name *"
-          fullWidth
-          sx={{ mb: 2 }}
+          label="Last Name *" fullWidth sx={{ mb: 2 }}
           error={Boolean(registerErrors.last_name)}
           helperText={registerErrors.last_name?.message}
           {...registerField("last_name", { required: "Last name is required" })}
@@ -137,8 +125,9 @@ function LoginRegister({ onLogin }) {
         <TextField label="Location" fullWidth sx={{ mb: 2 }} {...registerField("location")} />
         <TextField label="Description" fullWidth sx={{ mb: 2 }} {...registerField("description")} />
         <TextField label="Occupation" fullWidth sx={{ mb: 2 }} {...registerField("occupation")} />
-        <Button type="submit" variant="outlined" fullWidth>Register Me</Button>
+        <Button type="submit" variant="outlined" fullWidth>Đăng ký</Button>
       </Paper>
+      }
     </Box>
   );
 }
